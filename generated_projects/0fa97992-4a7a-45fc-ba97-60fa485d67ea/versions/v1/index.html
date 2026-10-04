@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MarkNote - Markdown Notes App</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📝 MarkNote</h2>
+                <button class="new-btn" onclick="createNote()">+ New Note</button>
+            </div>
+            <div id="notes-list" class="notes-list"></div>
+        </aside>
+
+        <main class="editor-pane">
+            <div class="editor-header">
+                <input id="note-title" class="title-input" placeholder="Note Title..." oninput="updateCurrentNote()" />
+                <button class="delete-btn" onclick="deleteCurrentNote()">🗑️ Delete</button>
+            </div>
+            <div class="split-view">
+                <textarea id="note-content" class="markdown-input" placeholder="Type Markdown here... (e.g. # Header, **bold**, - list)" oninput="updateCurrentNote()"></textarea>
+                <div id="preview-output" class="markdown-preview"></div>
+            </div>
+        </main>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>

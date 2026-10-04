@@ -1,0 +1,1 @@
+This application does not use a remote backend API. Data persistence is handled via a custom storage service that interacts directly with the browser's window.localStorage API. Data is stored under the keys 'notes' and 'tags' as JSON-stringified arrays.

@@ -1,0 +1,1 @@
+The application relies entirely on browser Local Storage, which has a capacity limit (typically 5MB). Large numbers of notes or heavy markdown content may eventually hit this limit. There is currently no synchronization mechanism for cross-device usage.

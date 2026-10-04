@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build a to-do app</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <div class="status-badge">● Operational · Live Environment</div>
+                <h1 style="font-size: 24px; font-weight: 800; margin-top: 8px;">Build a to-do app</h1>
+                <p style="color: var(--muted); font-size: 14px; margin-top: 4px;">Build a to-do app</p>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div style="font-size: 12px; color: var(--muted); text-transform: uppercase;">Active Records</div>
+                <div id="total-items" class="stat-num">0</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 12px; color: var(--muted); text-transform: uppercase;">Planned Features</div>
+                <div id="active-features" class="stat-num">0</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 12px; color: var(--muted); text-transform: uppercase;">Data Entities</div>
+                <div id="entities-count" class="stat-num">0</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-title">
+                    <span>Manage & Query Records</span>
+                </div>
+                <div id="items-list" class="items-list"></div>
+
+                <form onsubmit="createItem(event)" style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);">
+                    <div class="input-group">
+                        <label>Record Name / Action:</label>
+                        <input id="item-name" type="text" placeholder="Enter record title..." required />
+                    </div>
+                    <div class="input-group">
+                        <label>Entity Category:</label>
+                        <select id="item-cat"></select>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">+ Create Record</button>
+                </form>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="card">
+                    <div class="card-title">Interactive Action Console</div>
+                    <div class="input-group">
+                        <label>Command / Parameter:</label>
+                        <input id="quick-cmd" type="text" placeholder="Run test command or parameter query..." />
+                    </div>
+                    <button onclick="executeAction()" class="btn" style="width: 100%;">Run Action</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Live System Event Log</div>
+                    <div id="log-box" class="log-box"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="./script.js"></script>
+</body>
+</html>

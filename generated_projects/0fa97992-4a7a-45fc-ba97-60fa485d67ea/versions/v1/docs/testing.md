@@ -1,0 +1,1 @@
+The project includes unit tests for the storage logic. To run tests, ensure the environment is configured for Python/pytest. The test suite validates CRUD operations for notes, ensuring that data integrity is maintained during read, write, and delete cycles.

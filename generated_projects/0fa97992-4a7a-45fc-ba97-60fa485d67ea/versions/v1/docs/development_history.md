@@ -1,0 +1,1 @@
+The project was developed over 3 iterations, focusing on a robust component-driven architecture. Initial development established the core data structures and storage service, followed by the implementation of the markdown editor and preview interface, and finally the integration of search and tag management features.

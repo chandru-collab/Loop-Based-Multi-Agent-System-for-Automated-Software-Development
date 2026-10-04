@@ -1,0 +1,1 @@
+The application follows a modular Single Page Application (SPA) architecture. It uses React for UI rendering, Tailwind CSS for styling, and browser Local Storage for data persistence. The system is divided into functional modules: Storage, Note Management, Tag Management, Search, and Markdown Processing (using marked and DOMPurify).

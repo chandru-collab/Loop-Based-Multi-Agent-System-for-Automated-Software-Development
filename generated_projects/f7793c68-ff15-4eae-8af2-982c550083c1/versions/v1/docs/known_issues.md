@@ -1,0 +1,1 @@
+The current implementation is limited to local, single-device play. There is no network-based multiplayer support. The UI is optimized for standard screen sizes but may require further refinement for specific mobile aspect ratios.
