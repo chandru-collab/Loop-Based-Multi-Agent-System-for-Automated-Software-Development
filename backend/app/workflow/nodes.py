@@ -156,6 +156,14 @@ def coder_node(state: DevelopmentState) -> Dict[str, Any]:
             ))
             db.commit()
 
+        # Automatically launch live project server in background if runnable entrypoint exists
+        try:
+            from app.services.live_runner import live_runner
+            live_runner.start_project(project_id, result["workspace_path"])
+            logger.info(f"Auto-started live project runner for {project_id}")
+        except Exception as lr_err:
+            logger.debug(f"Live runner auto-start note for {project_id}: {lr_err}")
+
         return {
             "file_manifest": result["file_manifest"],
             "generated_files": result["generated_files"],
@@ -269,6 +277,8 @@ def reviewer_node(state: DevelopmentState) -> Dict[str, Any]:
             review_res = result.get("review_results", {})
             critical = len(review_res.get("critical_issues") or [])
             major = len(review_res.get("major_issues") or [])
+            confidence = review_res.get("confidence_score")
+            conf_str = f" Confidence score: {confidence}%." if confidence is not None else ""
             
             db.add(AgentRun(
                 id=str(uuid.uuid4()),
@@ -278,7 +288,7 @@ def reviewer_node(state: DevelopmentState) -> Dict[str, Any]:
                 status="completed",
                 started_at=started_at,
                 completed_at=datetime.datetime.utcnow(),
-                output_summary=f"Review found {critical} critical, {major} major issues."
+                output_summary=f"Review found {critical} critical, {major} major issues.{conf_str}"
             ))
             db.add(IterationHistory(
                 id=str(uuid.uuid4()),
@@ -289,6 +299,12 @@ def reviewer_node(state: DevelopmentState) -> Dict[str, Any]:
                 status=result["review_results"]["status"],
                 summary=result["review_results"]
             ))
+            _log_event(db, project_id, version, "REVIEW_COMPLETED", {
+                "status": result["review_results"]["status"],
+                "confidence_score": confidence,
+                "critical_issues": critical,
+                "major_issues": major
+            })
             project = db.query(Project).filter(Project.id == project_id).first()
             if project:
                 project.current_stage = "routing"
@@ -296,6 +312,7 @@ def reviewer_node(state: DevelopmentState) -> Dict[str, Any]:
 
         return {
             "review_results": result["review_results"],
+            "confidence_score": confidence,
             "current_stage": "routing",
             "history": history
         }

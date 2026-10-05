@@ -19,6 +19,8 @@ class DevelopmentState(TypedDict):
     debug_results: Optional[Dict[str, Any]]
     evaluation_results: Optional[Dict[str, Any]]
     documentation_results: Optional[Dict[str, Any]]
+    confidence_score: Optional[float]
+    routing_metadata: Optional[Dict[str, Any]]
     iteration: int
     max_iterations: int
     current_stage: str

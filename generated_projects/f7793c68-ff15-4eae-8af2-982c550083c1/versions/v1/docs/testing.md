@@ -1,1 +1,0 @@
-The project includes a test suite using Vitest for frontend logic and PyTest for core engine validation. Run 'npm test' to execute the Vitest suite. Ensure all dependencies are installed before running tests.

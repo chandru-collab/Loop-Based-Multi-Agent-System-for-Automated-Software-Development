@@ -55,6 +55,7 @@ class ReviewResult(BaseModel):
     missing_requirements: List[str] = Field(description="Requirements from the list that were not implemented")
     security_issues: List[str] = Field(description="Security vulnerabilities detected")
     recommendations: List[str] = Field(description="General improvements")
+    confidence_score: Optional[float] = Field(default=None, description="Confidence score between 0 and 100")
 
 class ModifiedFile(BaseModel):
     path: str = Field(description="Relative path of the modified file")

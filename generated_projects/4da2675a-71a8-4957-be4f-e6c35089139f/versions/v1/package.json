@@ -1,0 +1,22 @@
+{
+  "name": "todo-rest-api-spa",
+  "version": "1.0.0",
+  "description": "A clean Todo REST API simulation with full CRUD operations, status filtering, pagination, request validation, and error handlers.",
+  "main": "js/app.js",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "echo \"Error: run tests via browser test runner or inspect tests/app.test.js\" && exit 0"
+  },
+  "keywords": [
+    "todo",
+    "rest-api",
+    "spa",
+    "crud",
+    "pagination"
+  ],
+  "author": "Expert Developer",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

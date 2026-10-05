@@ -123,8 +123,12 @@ export const api = {
     return response.data;
   },
   getPackage: async (projectId: string) => {
-    const response = await axios.get(`${API_URL}/projects/${projectId}/package`);
-    return response.data;
+    try {
+      const response = await axios.get(`${API_URL}/projects/${projectId}/package`);
+      return response.data;
+    } catch {
+      return null;
+    }
   },
   getDownloadUrl: (projectId: string) => {
     return `${API_URL}/projects/${projectId}/download`;

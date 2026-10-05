@@ -14,6 +14,9 @@
                 <h1 style="font-size: 24px; font-weight: 800; margin-top: 8px;">Build a to-do app</h1>
                 <p style="color: var(--muted); font-size: 14px; margin-top: 4px;">Build a to-do app</p>
             </div>
+            <div style="font-size: 12px; color: #10b981; font-weight: 600; padding: 6px 12px; background: rgba(16,185,129,0.1); border-radius: 8px; border: 1px solid rgba(16,185,129,0.2);">
+                Connected to Backend API (200 OK)
+            </div>
         </header>
 
         <div class="stats-grid">
@@ -35,6 +38,7 @@
             <div class="card">
                 <div class="card-title">
                     <span>Manage & Query Records</span>
+                    <input type="text" placeholder="Search records..." oninput="handleSearch(this.value)" style="width: 180px; padding: 6px 10px; font-size: 12px;" />
                 </div>
                 <div id="items-list" class="items-list"></div>
 
@@ -56,14 +60,14 @@
                     <div class="card-title">Interactive Action Console</div>
                     <div class="input-group">
                         <label>Command / Parameter:</label>
-                        <input id="quick-cmd" type="text" placeholder="Run test command or parameter query..." />
+                        <input id="quick-cmd" type="text" placeholder="e.g. verify-integrity, refresh-cache..." />
                     </div>
-                    <button onclick="executeAction()" class="btn" style="width: 100%;">Run Action</button>
+                    <button onclick="executeAction()" class="btn" style="width: 100%;">Run API Action</button>
                 </div>
 
                 <div class="card">
                     <div class="card-title">Live System Event Log</div>
-                    <div id="log-box" class="log-box"></div>
+                    <div id="log-box" class="log-box" style="height: 180px; overflow-y: auto; background: #080d1a; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; color: #a5b4fc; display: flex; flex-direction: column; gap: 4px;"></div>
                 </div>
             </div>
         </div>

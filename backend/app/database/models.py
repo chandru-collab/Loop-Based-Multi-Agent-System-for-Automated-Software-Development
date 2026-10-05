@@ -227,6 +227,7 @@ class ReviewResult(Base):
     version = Column(Integer)
     iteration = Column(Integer)
     status = Column(String)
+    confidence_score = Column(Float, nullable=True)
     critical_issues = Column(JSON)
     major_issues = Column(JSON)
     minor_issues = Column(JSON)

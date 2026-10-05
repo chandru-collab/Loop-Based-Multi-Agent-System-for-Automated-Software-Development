@@ -1,0 +1,1 @@
+A 100% serverless, static Single Page Application (SPA) built with modern HTML5, CSS3, and Vanilla JavaScript, leveraging browser localStorage for data persistence to satisfy the Todo CRUD API simulation and requirements directly in the browser.

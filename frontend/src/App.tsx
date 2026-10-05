@@ -73,8 +73,10 @@ export default function App() {
   }, [loadProjects]);
 
   const loadProjectData = useCallback(async (id: string) => {
+    let currentProj: any = null;
     try {
-      setSelectedProject(await api.getProject(id));
+      currentProj = await api.getProject(id);
+      setSelectedProject(currentProj);
     } catch {}
     try {
       setRequirements(await api.getRequirements(id));
@@ -141,9 +143,13 @@ export default function App() {
     } catch {
       setVersions([]);
     }
-    try {
-      setPackageInfo(await api.getPackage(id));
-    } catch {
+    if (currentProj?.status === 'COMPLETED' || currentProj?.approval_status === 'APPROVED') {
+      try {
+        setPackageInfo(await api.getPackage(id));
+      } catch {
+        setPackageInfo(null);
+      }
+    } else {
       setPackageInfo(null);
     }
     try {

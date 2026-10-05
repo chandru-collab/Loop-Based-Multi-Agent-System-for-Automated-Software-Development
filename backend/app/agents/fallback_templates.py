@@ -33,7 +33,7 @@ FROM python:3.11-slim as base
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \\
     PYTHONDONTWRITEBYTECODE=1 \\
-    PORT=8000
+    PORT=5000
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends curl gcc && rm -rf /var/lib/apt/lists/*
@@ -49,9 +49,9 @@ COPY . .
 RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 8000
+EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \\
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:5000/health || exit 1
 
 CMD ["python", "app.py"]
 """
@@ -67,17 +67,17 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "5000:5000"
     environment:
       - ENVIRONMENT=production
-      - PORT=8000
+      - PORT=5000
       - LOG_LEVEL=info
       - DATABASE_URL=sqlite:///./app.db
     volumes:
       - app_data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -124,10 +124,52 @@ python-multipart>=0.0.9
 """
         return GeneratedFile(path=file_path, language="json", purpose=purpose, content=content.strip())
 
+    # 4b. tsconfig.node.json
+    if norm_path == "tsconfig.node.json":
+        content = """{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["vite.config.ts"]
+}
+"""
+        return GeneratedFile(path=file_path, language="json", purpose=purpose, content=content.strip())
+
+    # 4c. tsconfig.json
+    if norm_path == "tsconfig.json":
+        content = """{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+"""
+        return GeneratedFile(path=file_path, language="json", purpose=purpose, content=content.strip())
+
     # 5. .env.example
     if norm_path == ".env.example":
         content = """# Production Application Environment Configuration
-PORT=8000
+PORT=5000
 ENVIRONMENT=production
 LOG_LEVEL=info
 DATABASE_URL=sqlite:///./app.db
@@ -233,23 +275,28 @@ def test_validation_error_handling():
     if norm_path in ["app.py", "main.py"] or (norm_path.endswith(".py") and "server" in norm_path):
         content = f'''"""Production FastAPI Backend Server for {title}."""
 import os
+import sys
 import sqlite3
 import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 # Setup production logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("app")
 
-DB_PATH = os.environ.get("DATABASE_PATH", "app.db")
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "app.db"))
 
 def init_db():
     """Initialize persistent SQLite database schema."""
@@ -277,6 +324,12 @@ def init_db():
                 ("Production Quality Verification", "Security", "Passed automated validation", "ACTIVE")
             ])
         conn.commit()
+
+# Eagerly initialize DB so tables exist on startup and in test runners
+try:
+    init_db()
+except Exception as e:
+    logger.warning("Initial DB initialization deferred: %s", e)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -391,17 +444,106 @@ def delete_item(item_id: int):
             raise HTTPException(status_code=404, detail="Item not found")
         return {{"message": "Item deleted successfully", "id": item_id}}
 
-# Serve root interactive UI
+# ---- Universal Dynamic Collection Handlers (For ALL application domains) ----
+def _get_collection_file(collection: str) -> str:
+    data_dir = os.path.join(BASE_DIR, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    return os.path.join(data_dir, f"{{collection.lower()}}.json")
+
+def _read_col(collection: str) -> list:
+    cf = _get_collection_file(collection)
+    if os.path.exists(cf):
+        try:
+            with open(cf, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
+def _write_col(collection: str, data: list):
+    cf = _get_collection_file(collection)
+    with open(cf, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+@app.api_route("/api/{{collection}}", methods=["GET", "POST"], tags=["Universal API"])
+@app.api_route("/api/v1/{{collection}}", methods=["GET", "POST"], tags=["Universal API"])
+async def handle_dynamic_collection(collection: str, request: Request):
+    if collection == "items" and request.method == "GET":
+        return list_items()
+    if request.method == "GET":
+        return JSONResponse(_read_col(collection))
+    elif request.method == "POST":
+        try:
+            body = await request.json()
+        except Exception:
+            body = {{}}
+        items = _read_col(collection)
+        new_id = str(body.get("id") or (len(items) + 1))
+        body["id"] = new_id
+        items.insert(0, body)
+        _write_col(collection, items)
+        return JSONResponse(body, status_code=status.HTTP_201_CREATED)
+
+@app.api_route("/api/{{collection}}/{{item_id}}", methods=["GET", "PUT", "PATCH", "DELETE"], tags=["Universal API"])
+@app.api_route("/api/v1/{{collection}}/{{item_id}}", methods=["GET", "PUT", "PATCH", "DELETE"], tags=["Universal API"])
+async def handle_dynamic_item(collection: str, item_id: str, request: Request):
+    items = _read_col(collection)
+    target = next((i for i in items if str(i.get("id")) == str(item_id)), None)
+    if request.method == "GET":
+        if not target:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return JSONResponse(target)
+    elif request.method in ["PUT", "PATCH"]:
+        if not target:
+            raise HTTPException(status_code=404, detail="Item not found")
+        try:
+            body = await request.json()
+        except Exception:
+            body = {{}}
+        target.update(body)
+        _write_col(collection, items)
+        return JSONResponse(target)
+    elif request.method == "DELETE":
+        if not target:
+            raise HTTPException(status_code=404, detail="Item not found")
+        items = [i for i in items if str(i.get("id")) != str(item_id)]
+        _write_col(collection, items)
+        return JSONResponse({{"message": "Deleted", "id": item_id}})
+
+# ---- Static Files & Frontend Serving ----
 @app.get("/", include_in_schema=False)
 def serve_root():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
+    index_file = os.path.join(BASE_DIR, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
     return {{"message": "{title} API Server Live", "docs": "/docs"}}
+
+@app.get("/{{file_path:path}}", include_in_schema=False)
+def serve_static(file_path: str):
+    # Prevent directory traversal and serve valid static assets
+    safe_path = os.path.normpath(os.path.join(BASE_DIR, file_path))
+    if safe_path.startswith(BASE_DIR) and os.path.isfile(safe_path):
+        return FileResponse(safe_path)
+    index_file = os.path.join(BASE_DIR, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    raise HTTPException(status_code=404, detail="File not found")
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)
+    import socket
+
+    def find_available_port(default_port: int = 5000, max_attempts: int = 10) -> int:
+        for p in range(default_port, default_port + max_attempts):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex(("127.0.0.1", p)) != 0:
+                    return p
+        return default_port
+
+    requested_port = int(os.environ.get("PORT", 5000))
+    port = find_available_port(requested_port)
+    logger.info("Starting production server on http://localhost:%d", port)
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
 '''
         return GeneratedFile(path=file_path, language="python", purpose=purpose, content=content.strip())
 
@@ -454,6 +596,28 @@ app.delete('/api/v1/items/:id', (req, res) => {{
   const id = parseInt(req.params.id);
   items = items.filter(i => i.id !== id);
   res.json({{ message: 'Item deleted', id }});
+}});
+
+// Universal Dynamic Collection Handler for Express
+const collections = {{}};
+app.get(['/api/:col', '/api/v1/:col'], (req, res) => {{
+  const col = req.params.col;
+  if (col === 'items') return res.json(items);
+  res.json(collections[col] || []);
+}});
+app.post(['/api/:col', '/api/v1/:col'], (req, res) => {{
+  const col = req.params.col;
+  const list = collections[col] || [];
+  const newItem = {{ id: Date.now(), ...req.body }};
+  list.unshift(newItem);
+  collections[col] = list;
+  res.status(201).json(newItem);
+}});
+app.delete(['/api/:col/:id', '/api/v1/:col/:id'], (req, res) => {{
+  const col = req.params.col;
+  const id = req.params.id;
+  if (collections[col]) collections[col] = collections[col].filter(i => String(i.id) !== String(id));
+  res.json({{ message: 'Deleted', id }});
 }});
 
 app.get('*', (req, res) => {{

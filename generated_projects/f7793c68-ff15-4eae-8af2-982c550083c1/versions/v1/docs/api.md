@@ -1,1 +1,0 @@
-This project is a client-only application and does not expose external API endpoints. All game logic and state management are handled locally within the browser environment.

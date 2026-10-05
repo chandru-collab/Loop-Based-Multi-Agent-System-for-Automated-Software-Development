@@ -18,5 +18,10 @@ Rules:
 2. Clearly state the purpose of each file.
 3. Be comprehensive. If a database is used, include the database connection file.
 4. Ensure the file structure matches the Development Plan's architecture.
-5. Do not return only documentation or package metadata. The manifest must contain every file needed to run the application.
-6. The application MUST be designed as a purely static frontend application (no backend API servers like Express or FastAPI) so that it can be served directly from a static file server and use `localStorage` for state. Do NOT include `app.py` or `server.js` backends unless absolutely mandatory.
+6. The application MUST be designed as a production-grade, fully working system:
+   - Provide a complete, fully functional browser UI in index.html, style.css, and script.js.
+   - The UI MUST be production-quality, responsive, and completely interactive (forms, lists, action buttons, filters, stats, validation).
+   - If a backend (app.py / server.js) is present, script.js MUST communicate with real REST endpoints while gracefully falling back to local persistence so that the application works seamlessly both standalone and in live preview.
+   - All script references in index.html must be valid and runnable in standard browsers without syntax errors.
+   - NEVER generate placeholder text, 'simulated' mock wireframes, or non-functional buttons. Every feature must work in reality.
+

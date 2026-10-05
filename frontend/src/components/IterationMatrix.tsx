@@ -159,7 +159,27 @@ export const IterationMatrix: React.FC<IterationMatrixProps> = ({
                       )}
                     </div>
                     {rr ? (
-                      <div className="space-y-1 text-[11px]">
+                      <div className="space-y-1.5 text-[11px]">
+                        {rr.confidence_score !== undefined && rr.confidence_score !== null && (
+                          <div className="pb-1.5 mb-1.5 border-b border-slate-800">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-slate-400 font-medium">Confidence Score:</span>
+                              <span className={`font-mono font-bold ${
+                                rr.confidence_score >= 80 ? 'text-emerald-400' : rr.confidence_score >= 50 ? 'text-amber-400' : 'text-rose-400'
+                              }`}>
+                                {typeof rr.confidence_score === 'number' ? rr.confidence_score.toFixed(1) : rr.confidence_score}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  rr.confidence_score >= 80 ? 'bg-emerald-400' : rr.confidence_score >= 50 ? 'bg-amber-400' : 'bg-rose-400'
+                                }`}
+                                style={{ width: `${Math.min(100, Math.max(0, rr.confidence_score))}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span className="text-slate-400">Critical Issues:</span>
                           <span className="font-mono font-bold text-rose-400">

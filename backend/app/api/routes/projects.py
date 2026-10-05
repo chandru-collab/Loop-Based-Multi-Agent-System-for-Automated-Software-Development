@@ -841,7 +841,14 @@ def get_project_preview(project_id: str, version: int = None, db: Session = Depe
     if '<base ' not in html:
         html = f'<base href="{asset_base}">{html}'
         
-    return HTMLResponse(html)
+    return HTMLResponse(
+        html,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
 
 @router.get("/{project_id}/preview/{asset_path:path}")
 def get_project_preview_asset(project_id: str, asset_path: str, version: int = None, db: Session = Depends(get_db)):
@@ -866,7 +873,15 @@ def get_project_preview_asset(project_id: str, asset_path: str, version: int = N
         media_type = "application/javascript"
     elif asset_path.endswith(".html"):
         media_type = "text/html"
-    return FileResponse(full_path, media_type=media_type)
+    return FileResponse(
+        full_path,
+        media_type=media_type,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
 
 @router.get("/{project_id}/iterations")
 def get_iterations(project_id: str, db: Session = Depends(get_db)):
@@ -1107,7 +1122,7 @@ def get_package(project_id: str, db: Session = Depends(get_db)):
         PackageMetadata.version == project.current_version
     ).first()
     if not pkg:
-        raise HTTPException(status_code=404, detail="Package not found. Project may not be approved yet.")
+        return None
 
     return {
         "project_id": project_id,

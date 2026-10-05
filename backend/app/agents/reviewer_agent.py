@@ -122,6 +122,20 @@ class ReviewerAgent(BaseAgent):
             len(review_result.security_issues) > 0):
             review_result.status = "NEEDS_FIX"
 
+        # Calculate empirical confidence score based on tests and review issues
+        from app.workflow.routing import calculate_confidence_score
+        synthetic_state = {
+            "test_results": test_results,
+            "review_results": review_result.model_dump()
+        }
+        score = calculate_confidence_score(synthetic_state)
+        review_result.confidence_score = score
+
+        if score < 80.0:
+            review_result.status = "NEEDS_FIX"
+
+        logger.info(f"Review completed with status={review_result.status} and confidence_score={score}%")
+
         return {
             "review_results": review_result.model_dump(),
             "status": "COMPLETED"

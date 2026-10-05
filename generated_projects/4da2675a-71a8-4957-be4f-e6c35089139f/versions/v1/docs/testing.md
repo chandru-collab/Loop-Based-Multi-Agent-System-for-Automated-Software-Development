@@ -1,0 +1,1 @@
+The project includes a Pytest suite under the `tests/` directory as well as frontend test scripts. To run the backend tests, install dependencies via `pip install -r requirements.txt` and execute `pytest`.

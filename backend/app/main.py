@@ -5,8 +5,15 @@ from app.api.router import api_router
 from app.database.database import engine, Base
 import os
 
-# Create database tables
+# Create database tables and ensure schema integrity
 Base.metadata.create_all(bind=engine)
+try:
+    with engine.connect() as conn:
+        from sqlalchemy import text
+        conn.execute(text("ALTER TABLE review_results ADD COLUMN confidence_score FLOAT"))
+        conn.commit()
+except Exception:
+    pass # Column already exists or table freshly created
 
 app = FastAPI(title="Loop-Based Multi-Agent System API")
 
@@ -18,9 +25,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix="/api")
+from app.api.routes import project_preview
 
-# Mount generated projects directory for live preview
+app.include_router(api_router, prefix="/api")
+app.include_router(project_preview.router, prefix="/projects", tags=["project_preview"])
+
+# Mount generated projects directory as fallback static files
 generated_projects_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "generated_projects"
@@ -28,7 +38,19 @@ generated_projects_path = os.path.join(
 if not os.path.exists(generated_projects_path):
     os.makedirs(generated_projects_path)
 
-app.mount("/projects", StaticFiles(directory=generated_projects_path), name="projects")
+class NoCacheStaticFiles(StaticFiles):
+    """StaticFiles handler that disables HTTP caching so live preview always serves fresh files."""
+    def is_not_modified(self, response_headers, request_headers) -> bool:
+        return False
+
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+app.mount("/projects-static", NoCacheStaticFiles(directory=generated_projects_path), name="projects_static")
 
 @app.get("/")
 def read_root():

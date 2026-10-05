@@ -1,1 +1,0 @@
-The project was developed over 3 iterations, focusing on establishing a robust React/TypeScript foundation, implementing core chess move validation, and ensuring a responsive UI using TailwindCSS.
